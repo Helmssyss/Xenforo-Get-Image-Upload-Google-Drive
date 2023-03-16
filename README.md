@@ -1,1 +1,1 @@
-# THT-GetImage-L-nk-Upload-To-Google-Drive
+# THT-GetImage-Link-Upload-To-Google-Drive
