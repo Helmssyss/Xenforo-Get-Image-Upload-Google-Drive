@@ -3,6 +3,11 @@ Türk Hack Team(https://www.turkhackteam.org/) forum sitesinde, açılmış herh
 
 Yükleme işlemi, gidilen saf resim linkinden resimin sayfa içeriğini alır bunu byte formatına çevirir ve bu çevrilen formatta drive'a yollar. Drive tarafında bunlar işlenip png uzantılı resimler haline dönüşür. Böylece lokalde tekrardan indirmeye gerek kalmayarak hızdan ve yerden tasarruf etmiş oluruz.
 
+
+Başlamadan önce
+```bash
+>> pip install -r requirements.txt
+```
 Google Drive'dan API'yi aktif etmeniz, aktif ettikten sonra da size verilen json dosyasını indirmeniz gerekli. İndirilen json dosyasının adını "credentials.json" olarak değiştirmeniz gerekli.
 
 Daha sonra Foruma gidip ilgili cookieleri edinmeniz gerekli. Bunları da edinip, ".cfg" dosyasındaki değerlere yazmalısınız.
