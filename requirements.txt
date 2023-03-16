@@ -1,0 +1,6 @@
+mechanize
+googleapiclient
+google_auth_oauthlib
+google
+requests
+beautifulsoup4
