@@ -19,6 +19,10 @@ import random
 import os
 
 VOID = None
+
+__author__      = "Arif-Helmsys"
+__author__      = "Coderx37"
+
 class LoginTHT:
     @classmethod
     @property
