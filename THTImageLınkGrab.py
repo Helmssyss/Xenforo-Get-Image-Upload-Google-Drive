@@ -59,10 +59,8 @@ class LoginTHT:
                     br.open(i)
                     # print(br._ua_handlers['_cookies'].cookiejar)
                     cls.contents.append(br.response().read())
-                    # return br.response().read()
                 except Exception as e:
                     print(e)
-            
 
 class DriveApi:
     lock = threading.Lock()
@@ -109,7 +107,6 @@ class DriveApi:
                     for i in jsonObject["all_link"]:
                         self.all_link.append(i)
                     
-
                     jsonObject["all_link"] = []
                     with open("link_manage.json","w",encoding="utf-8") as jfile:
                         jfile.write(json.dumps(jsonObject,indent=4))
@@ -120,6 +117,10 @@ class DriveApi:
             except Exception as e:
                 print(e)
                 run = False
+                
+            finally:
+                self.all_link.clear()
+                LoginTHT.contents.clear()
 
     def getImages(self) -> Generator:
         try:
@@ -172,9 +173,6 @@ class DriveApi:
         
         for t in threads:
             t.join()
-
-        self.all_link.clear()
-        LoginTHT.contents.clear()
 
 if __name__ == "__main__":
     print("\n[Config (.cfg) dosyasına Cookieleri yazdığından emin ol]")
