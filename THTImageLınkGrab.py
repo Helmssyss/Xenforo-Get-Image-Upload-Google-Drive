@@ -1,5 +1,6 @@
+# Authors : Arif-Helmsys , Coderx37
+
 from io import BytesIO
-from mimetypes import MimeTypes
 from typing import Generator
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup
@@ -17,13 +18,14 @@ import threading
 import queue
 import random
 import os
+import json
+import time
 
 VOID = None
-
-__author__      = "Arif-Helmsys"
-__author__      = "Coderx37"
-
 class LoginTHT:
+
+    contents:list[bytes] = []
+
     @classmethod
     @property
     def __getCookies(cls) -> dict[str,str]:
@@ -34,7 +36,7 @@ class LoginTHT:
         return cookies
 
     @classmethod
-    def getThtHtmlPageContent(cls,url:str) -> bytes:
+    def getThtHtmlPageContent(cls,url:list[str]) -> bytes:
         """
         Eğer Mechanize tarafında 403 hatası alınırsa ilgili web sayfasının kaynak kodlarını kaydedip, yorum satırına alınan kısmı aktif edin. Mechanize
         tarafını iptal edin
@@ -43,31 +45,33 @@ class LoginTHT:
             #     response = response_file.read()
             # return response
         """
-        try:
-            br = Browser()
-            br.addheaders = [
-                ('User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1'),
-                ("cookie",f"xf_user={cls.__getCookies['xf-user']}; xf_tfa_trust={cls.__getCookies['xf-tfa-trust']}; xf_session={cls.__getCookies['xf-session']}")
-            ]
-            br.set_handle_robots(False)
-            br.open(url)
-            print(br._ua_handlers['_cookies'].cookiejar)
-            return br.response().read()
-            # response = ''
-            # with open("response6.html","r",encoding="utf-8") as response_file:
-            #     response = response_file.read()
-            # return response
-        except Exception as e:
-            print(e)
+        print("all_link",url)
+        if len(url) >= 1:
+            for i in url:
+                try:
+                    print("link:",i)
+                    br = Browser()
+                    br.addheaders = [
+                        ('User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1'),
+                        ("cookie",f"xf_user={cls.__getCookies['xf-user']}; xf_tfa_trust={cls.__getCookies['xf-tfa-trust']}; xf_session={cls.__getCookies['xf-session']}")
+                    ]
+                    br.set_handle_robots(False)
+                    br.open(i)
+                    # print(br._ua_handlers['_cookies'].cookiejar)
+                    cls.contents.append(br.response().read())
+                    # return br.response().read()
+                except Exception as e:
+                    print(e)
             
 
 class DriveApi:
     lock = threading.Lock()
     que = queue.Queue()
-    def __init__(self,url):
+    all_link = []
+
+    def __init__(self):
         SCOPES = ['https://www.googleapis.com/auth/drive']
         self.creds = None
-        self.content = LoginTHT.getThtHtmlPageContent(url)
         if os.path.exists('token.pickle'):
             with open('token.pickle', 'rb') as token:
                 self.creds = pickle.load(token)
@@ -83,20 +87,50 @@ class DriveApi:
             with open('token.pickle', 'wb') as token:
                 pickle.dump(self.creds, token)
 
-        # self.service = build('drive', 'v3', credentials=self.creds)
-        # results = self.service.files().list(pageSize=100, fields="files(id, name)").execute()
-        # items = results.get('files', [])
-        # print(*items, sep="\n", end="\n\n")
+    def run(self):
+        run = True
+        sample = {
+            "all_link": []
+        }
+        if not os.path.exists("link_manage.json"):
+            with open("link_manage.json","w",encoding="utf-8") as jfile:
+                dumpedJsonObject = json.dumps(sample,indent=4)
+                jfile.write(dumpedJsonObject)
+
+        while run:
+            try:
+                time.sleep(1)
+                print("Çalışıyor..")
+                with open("link_manage.json","r",encoding="utf-8") as jfile:
+                    jsonObject = json.load(jfile)
+
+                if len(jsonObject['all_link']) >= 1:
+                    print("Link(ler) eklendi!")
+                    for i in jsonObject["all_link"]:
+                        self.all_link.append(i)
+                    
+
+                    jsonObject["all_link"] = []
+                    with open("link_manage.json","w",encoding="utf-8") as jfile:
+                        jfile.write(json.dumps(jsonObject,indent=4))
+
+                    LoginTHT.getThtHtmlPageContent(self.all_link)
+                    self.__uploadGoogleDrive()
+
+            except Exception as e:
+                print(e)
+                run = False
 
     def getImages(self) -> Generator:
         try:
-            soup = BeautifulSoup(self.content,"lxml")
-            for i in soup.find_all("img",attrs={"class":"bbImage"}):
-                for j in urlparse(i['data-url']).netloc.split('.'):
-                    if j =="hizliresim":
-                        yield i['data-url']
-        except:
-            pass
+            for content in LoginTHT.contents:
+                soup = BeautifulSoup(content,"lxml")
+                for i in soup.find_all("img",attrs={"class":"bbImage"}):
+                    for j in urlparse(i['data-url']).netloc.split('.'):
+                        if j =="hizliresim":
+                            yield i['data-url']
+        except Exception as e:
+            print(e)
 
     def readAllImageContents(self,que:queue.Queue,count:int):
         self.lock.acquire()
@@ -112,12 +146,12 @@ class DriveApi:
             print(f"[{count}] {imgName} Başarıyla Google Drive'a Kaydedildi",threading.current_thread().name)
 
         except Exception as e:
-            print(f"[{count}] {imgName} Google Drive'a Kaydetme Başarısız!",threading.current_thread().name)
+            print(f"[{count}] {imgName} Google Drive'a Kaydetme Başarısız!",threading.current_thread().name,e,picURL)
         finally:
             que.task_done()
             self.lock.release()
 
-    def uploadGoogleDrive(self) -> VOID:
+    def __uploadGoogleDrive(self) -> VOID:
         threads:list[threading.Thread] = []
         count = 0
         print("\n")
@@ -139,10 +173,13 @@ class DriveApi:
         for t in threads:
             t.join()
 
+        self.all_link.clear()
+        LoginTHT.contents.clear()
+
 if __name__ == "__main__":
     print("\n[Config (.cfg) dosyasına Cookieleri yazdığından emin ol]")
-    print("Google Drive'a Resimlerin Yüklenme Hızı İnternet Hızı İle Doğru Orantılı\n")
-    input("Devam Etmek İçin (Enter) >")
-    input = input("Forumdan bir konu linki Gönder > ")
-    app = DriveApi(input)
-    app.uploadGoogleDrive()
+    print(">Google Drive'a Resimlerin Yüklenme Hızı İnternet Hızı İle Doğru Orantılı<")
+    print(">Bir veya birden fazla linki 'link_manage.json' dosyasındaki all_link anahtarındaki listenin içerisine ekleyip kaydetmen yeterli.<\n")
+    input(">Devam Etmek İçin (Enter)<")
+    app = DriveApi()
+    app.run()
