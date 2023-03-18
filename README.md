@@ -12,7 +12,12 @@ Google Drive'dan API'yi aktif etmeniz, aktif ettikten sonra da size verilen json
 
 Daha sonra Foruma gidip ilgili cookieleri edinmeniz gerekli. Bunları da edinip, ".cfg" dosyasındaki değerlere yazmalısınız.
 
-Sonrasında gönül rahatlığı ile kodu run edebilirsiniz...
+Çalıştırmak için
+```bash
+>> python app.py
+```
+
+`link_manage.json` adında json dosyası bulunuyor.. script çalıştğında bu dosya yoksa oluşturur, varsa bu dosyayı okur. Siz bir veya birden fazla link girilmesini istediğinizde, bunlrı `all_link` adındaki anahtarın barındırdığı liste ye eklemeniz gerekli. Ekledikten sonra kayıt edebilirsiniz..
 
 
 
