@@ -21,7 +21,5 @@ Daha sonra Foruma gidip ilgili cookieleri edinmeniz gerekli. Bunları da edinip,
 
 
 
-Geliştirilecek...
-
 <img src="https://avatars.githubusercontent.com/u/89170235?v=4" width="90px;" alt="Fenrirsoftware"/>  <img src="https://avatars.githubusercontent.com/u/84701901?s=400&u=159a0e92650378c13f9319b0568e73a206ad4ec0&v=4" width="90px;" alt="Helmsys"/>
 
